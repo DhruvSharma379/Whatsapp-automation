@@ -1,0 +1,131 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "testing-webhook",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -880,
+        -272
+      ],
+      "id": "58a2917e-2534-409e-8077-322777a0dc4d",
+      "name": "Webhook",
+      "webhookId": "a73aa070-d8eb-420a-917b-c97f1e831e25"
+    },
+    {
+      "parameters": {
+        "jsCode": "const reply =\n    $json.response?.trim();\n\nconst chatId =\n    $('Webhook')\n        .first()\n        .json\n        .body\n        .chatId;\n\nreturn {\n    json: {\n        chatId,\n        message: reply\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -272
+      ],
+      "id": "753ec8fe-0bb9-444c-be10-cafcdd64b7f5",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:3000/send-message",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chatId",
+              "value": "={{ $json.chatId }}"
+            },
+            {
+              "name": "message",
+              "value": "={{ $('Generate a reply').item.json.response }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -160,
+        -272
+      ],
+      "id": "6ad6033f-d714-4504-9fea-4c2832aa3dd1",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\nJSON.stringify({\nmodel: \"qwen3:1.7b\",\nprompt:\n\"You are Dhruv replying on WhatsApp.\\n\\n\" +\n\n\"Your task is to generate the SINGLE next message Dhruv would send.\\n\\n\" +\n\n\"Rules:\\n\" +\n\"- Read the entire conversation carefully.\\n\" +\n\"- Understand the relationship between the people.\\n\" +\n\"- Match Dhruv's writing style, tone, humor, emojis, slang, and message length.\\n\" +\n\"- Reply naturally like a real human.\\n\" +\n\"- Continue the conversation logically.\\n\" +\n\"- If a question was asked, answer it.\\n\" +\n\"- If the conversation is casual, keep the reply casual.\\n\" +\n\"- If the conversation is serious, keep the reply serious.\\n\" +\n\"- Keep the response concise unless a longer reply is clearly needed.\\n\" +\n\"- Never explain your reasoning.\\n\" +\n\"- Never describe the conversation.\\n\" +\n\"- Never mention that you are an AI.\\n\" +\n\"- Output only the WhatsApp message text.\\n\" +\n\"- No quotation marks.\\n\" +\n\"- No markdown.\\n\" +\n\"- No multiple options.\\n\\n\" +\n\n\"Conversation History:\\n\" +\nJSON.stringify($json.body.history, null, 2),\n\nstream: false\n})\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -640,
+        -272
+      ],
+      "id": "3a2ce280-2e02-4ebe-a18c-ce8accc4f9cf",
+      "name": "Generate a reply"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Generate a reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate a reply": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "1bcfdc01-f697-4d45-9479-065cd71a811b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4104804bb854270373b22372410079144671e62a031747fa4a90d3b947df5147"
+  },
+  "nodeGroups": [],
+  "id": "aZDrKQDZcJpxDrm0",
+  "tags": []
+}
